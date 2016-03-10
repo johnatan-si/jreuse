@@ -9,14 +9,7 @@ import org.eclipse.jdt.core.dom.TypeDeclaration;
 
 
 public class TypeDeclarationVisitor extends ASTVisitor {
-	private String name; 
-	 
-    private int modifiers; 
- 
-    //private List<String> members; 
- 
-    public TypeDeclarationVisitor() { 
-    } 
+
 
 	@Override
 	public boolean visit(TypeDeclaration node) {
@@ -26,10 +19,8 @@ public class TypeDeclarationVisitor extends ASTVisitor {
 				privateModifier = true;
 				break;
 			}
-			//node.getFields();
-			//System.out.println("TIPO DECLARADO "+node.getTypes().toString());
-			System.out.println("TIPO "+node.getNameProperty());
-			System.out.println("TIPO DECLARADO "+node.getNameProperty());
+			//System.out.println("TIPO "+node.getNameProperty());
+			//System.out.println("TIPO DECLARADO "+node.getNameProperty());
 		}
 
 		return super.visit(node);

@@ -41,18 +41,21 @@ public class Main {
 
 		FieldDeclarationVisitor visitorField = new FieldDeclarationVisitor();
 		TypeDeclarationVisitor visitorType = new TypeDeclarationVisitor();
-		MethodDeclarationVisitor visitorMethod = new MethodDeclarationVisitor();
+		MethodDeclarationVisitor visitorMethod = new MethodDeclarationVisitor(compilationUnit);
 		
 		compilationUnit.accept(visitorField);
 		compilationUnit.accept(visitorType);
 		compilationUnit.accept(visitorMethod);
 
-		return // source.getAbsolutePath() + "," +        // endereco absoluto da  classe
-		source.getName() 					+ "," +     // nome da classe  
-		visitorField.nameAtr 				+ "," +    // nome do atributo 
-		visitorField.tipo 					+ "," +	  // tipo do campo
-        visitorMethod.nameMethod.toString() + "," +  // nome do método 
-		visitorMethod.getNumberMethods();  			// qtd de métodos 
+		return  source.getAbsolutePath() + "," +        // endereco absoluto da  classe
+		//source.getName() 					+ "," +     // nome da classe  
+		//visitorField.nameAtr 				+ "," +    // nome do atributo 
+		//visitorField.tipo 					+ "," +	  // tipo do campo
+
+		visitorMethod.getNameMethod() + "," +  // nome do método
+		visitorMethod.getLoc();//+","+
+		//visitorMethod.getNumberMethods();  			// qtd de métodos 
+		
 	}
 
 	public static String readFileToString(String filePath) throws IOException {
