@@ -28,38 +28,22 @@ public class MethodDeclarationVisitor extends ASTVisitor {
 	
 	
 	@Override
-	public boolean visit(MethodDeclaration node) {
+	public boolean visit(MethodDeclaration method) {
 
+		nameMethod.add(method.getName().toString());
 		
-	//	nameMethod.add(node.getName().toString());
-		
-		int startline = compilation.getLineNumber(node.getStartPosition());
-        int endLine = compilation.getLineNumber(node.getStartPosition() + node.getLength());
-        //return endLine - startline -1;
-        this.loc.add(endLine - startline -2);
+        int startLine=compilation.getLineNumber(method.getBody().getStartPosition());
+        int endLine= compilation.getLineNumber(method.getBody().getStartPosition()+method.getBody().getLength());
         
-        this.nameMethod.add(node.getName().toString());
-        //System.out.println("JESUS DE NAZARE "+(endLine - startline -1));	
-		
-			//System.out.println("1"+node.parameters().size());
-			//System.out.println("2"+node.parameters().toString());
-			//System.out.println("3"+node.parameters().toString());
-			//System.out.println("4"+node.parameters().toString());
-			//System.out.println("5"+node.parameters().toString());
-		
-		/*methodParam.setLoc(getLoc(method));
-		methodParam.setParameters(method.parameters().size());
-		methodParam.setReturns(!isVoid(method));
-		methodParam.setStatic(Modifier.isStatic(method.getModifiers()));
-		methodParam.setFinal(Modifier.isFinal(method.getModifiers()));
-		methodParam.setAbstract(Modifier.isAbstract(method.getModifiers()));
-		methodParam.setGetSet(isGetSetMethod(method));
-		methodParam.setThrowsException(method.thrownExceptionTypes().size() > 0);*/
-		
+        //System.out.println(method.getBody().);
+        
+        System.out.println("method "+ method.getName().toString());
+        System.out.println("loc "+(endLine-startLine-1));
+     		
 		
 		numberMethods++;
 		
-		return super.visit(node);
+		return super.visit(method);
 	}
 
 	public int getNumberMethods() {

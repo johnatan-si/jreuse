@@ -46,6 +46,8 @@ public class Main {
 		compilationUnit.accept(visitorField);
 		compilationUnit.accept(visitorType);
 		compilationUnit.accept(visitorMethod);
+		
+		System.out.println("classe "+source.getName().toString()+"\n"+"\r");
 
 		return  source.getAbsolutePath() + "," +        // endereco absoluto da  classe
 		//source.getName() 					+ "," +     // nome da classe  
