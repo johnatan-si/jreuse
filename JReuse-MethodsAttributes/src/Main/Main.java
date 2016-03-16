@@ -42,22 +42,30 @@ public class Main {
 		FieldDeclarationVisitor visitorField = new FieldDeclarationVisitor();
 		TypeDeclarationVisitor visitorType = new TypeDeclarationVisitor();
 		MethodDeclarationVisitor visitorMethod = new MethodDeclarationVisitor(compilationUnit);
-		
+
 		compilationUnit.accept(visitorField);
 		compilationUnit.accept(visitorType);
 		compilationUnit.accept(visitorMethod);
-		
-		System.out.println("classe "+source.getName().toString()+"\n"+"\r");
 
-		return  source.getAbsolutePath() + "," +        // endereco absoluto da  classe
-		//source.getName() 					+ "," +     // nome da classe  
-		//visitorField.nameAtr 				+ "," +    // nome do atributo 
-		//visitorField.tipo 					+ "," +	  // tipo do campo
-
-		visitorMethod.getNameMethod() + "," +  // nome do método
-		visitorMethod.getLoc();//+","+
-		//visitorMethod.getNumberMethods();  			// qtd de métodos 
+	//	System.out.println(visitorMethod.getNameMethod() + "\n" + "\r");
+	//	System.out.println(visitorMethod.getTyp() + "\n" + "\r");
+		// System.out.println(visitorMethod.getNameMethod());
+		System.out.println(source.getAbsolutePath());
 		
+		return source.getAbsolutePath() + "," + // endereco absoluto da classe
+				source.getName() + "," + // nome da classe
+
+		// visitorField.nameAtr + "," + // nome do atributo
+		// visitorField.tipo + "," + // tipo do campo
+
+		
+		  visitorMethod.getNameMethod() + "," + // nome do método
+		  visitorMethod.getVisib() + "," + 
+		  visitorMethod.getTyp() + "," +
+		  visitorMethod.getLoc() + ","+
+		 
+		visitorMethod.getNumberMethods(); // qtd de métodos
+
 	}
 
 	public static String readFileToString(String filePath) throws IOException {
@@ -77,37 +85,42 @@ public class Main {
 	}
 
 	public static void parseFilesInDir(File file, PrintWriter writeCSVFieldProject) throws IOException {
-
-		if (file.isFile()) {
-			if (file.getName().endsWith(".java")) {
-				String line = parse(readFileToString(file.getAbsolutePath()), file);
-				if (line != null) {
-					writeCSVFieldProject.println(line);
+	
+			if (file.isFile()) {
+				if (file.getName().endsWith(".java")) {
+					String line = parse(readFileToString(file.getAbsolutePath()), file);
+					if (line != null) {
+						writeCSVFieldProject.println(line);
+					}
+				}
+			} else {
+				for (File f : file.listFiles()) {
+					parseFilesInDir(f, writeCSVFieldProject);
 				}
 			}
-		} else {
-			for (File f : file.listFiles()) {
-				parseFilesInDir(f, writeCSVFieldProject);
-			}
-		}
 	}
 
 	public static void main(String[] args) throws IOException {
-		
+
 		FileReader fileProjects = new FileReader("Projects.txt");
 		BufferedReader readFile = new BufferedReader(fileProjects);
+		try {
+			String project = readFile.readLine();
+			while (project != null) {
 
-		String project = readFile.readLine();
-		while (project != null) {
+				FileWriter csvFieldProject = new FileWriter(
+						"../.." + File.separator + "projects" + File.separatorChar + project + "_external.csv");
+				PrintWriter writeCSVFieldProject = new PrintWriter(csvFieldProject);
+				String endereco = "../.." + File.separator + "projects" + File.separatorChar + project;
+				parseFilesInDir(new File(endereco), writeCSVFieldProject);
 
-			FileWriter csvFieldProject = new FileWriter("../.." + File.separator + "projects" + File.separatorChar + project + "_external.csv");
-			PrintWriter writeCSVFieldProject = new PrintWriter(csvFieldProject);
-			String endereco = "../.." + File.separator + "projects" + File.separatorChar + project;
-			parseFilesInDir(new File(endereco), writeCSVFieldProject);
+				csvFieldProject.close();
 
-			csvFieldProject.close();
+				project = readFile.readLine();
+			}
 
-			project = readFile.readLine();
+		} catch (IOException e) {
+			System.err.println(e);
 		}
 	}
 }
