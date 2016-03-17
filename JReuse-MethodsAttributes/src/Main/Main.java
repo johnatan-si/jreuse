@@ -6,6 +6,9 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.util.Hashtable;
 
 import org.eclipse.jdt.core.JavaCore;
@@ -16,10 +19,13 @@ import org.eclipse.jdt.core.dom.CompilationUnit;
 import Model.FieldDeclarationVisitor;
 import Model.MethodDeclarationVisitor;
 import Model.TypeDeclarationVisitor;
+import Util.Conexao;
+
 
 public class Main {
 
 	public static String parse(String str, File source) throws IOException {
+
 		ASTParser parser = ASTParser.newParser(AST.JLS8);
 		parser.setSource(str.toCharArray());
 		parser.setKind(ASTParser.K_COMPILATION_UNIT);
@@ -47,24 +53,80 @@ public class Main {
 		compilationUnit.accept(visitorType);
 		compilationUnit.accept(visitorMethod);
 
-	//	System.out.println(visitorMethod.getNameMethod() + "\n" + "\r");
-	//	System.out.println(visitorMethod.getTyp() + "\n" + "\r");
-		// System.out.println(visitorMethod.getNameMethod());
-		System.out.println(source.getAbsolutePath());
+		Connection conn = null;
+		String sqlInsert = "INSERT INTO entities(method, class,visibility,type,loc,numberMethods,AbsolutePath) VALUES (?,?,?,?,?,?,?)";
+		java.sql.PreparedStatement stm = null;
+		Conexao bd = new Conexao();
 		
+		try {
+			conn = bd.obtemConexao();
+		} catch (SQLException e2) {
+			e2.printStackTrace();
+		}
+
+		try {
+			conn.setAutoCommit(false);
+			stm = conn.prepareStatement(sqlInsert);
+			
+			System.out.println("NOME: "+visitorMethod.getNameMethod());
+			System.out.println("TAMANHO: "+visitorMethod.getNameMethod().size());
+			
+			
+			//System.out.println(" classe "+source.getName());
+			System.out.println("Visi "+visitorMethod.getVisib().size()); 
+			System.out.println(" typ "+visitorMethod.getTyp().size() );
+			System.out.println("loc "+visitorMethod.getLoc().size());
+ 		    //System.out.println(" qtdMetod "+visitorMethod.getNumberMethods());
+
+
+			
+			for (int i = 0; i < visitorMethod.getNameMethod().size(); i++) {
+			
+				stm.setString(1, visitorMethod.getNameMethod().get(i));// nome do method
+				stm.setString(2, source.getName());// nome da classe
+				stm.setString(3, visitorMethod.getVisib().get(i));// visibilidade do metodo 
+				stm.setString(4, visitorMethod.getTyp().get(i));// tipo do método 
+				stm.setInt	 (5, visitorMethod.getLoc().get(i));
+				stm.setInt	 (6, visitorMethod.getNumberMethods());
+				stm.setString(7, source.getAbsolutePath());// caminho do arquivo 
+
+				stm.execute();
+				conn.commit();// efetiva inclusoes
+				System.out.println("Inclusão concluída "+i+"\n\r");
+			}
+			// stm.execute();
+			// conn.commit();// efetiva inclusoes
+			/*if (stm.execute()) {
+				System.out.println("Inclusão concluída");
+			}*/
+
+		} catch (Exception e) {
+			// Caso tenha uma exceção printa na tela
+			e.printStackTrace();
+			try {
+				// Aqui ele 'tenta' retroceder, na ação que deu errado.
+				// quase um Ctrl+Z da vida.
+				conn.rollback();
+			} catch (SQLException e1) {
+				System.out.print(e1.getStackTrace());
+			}
+		} finally {
+			if (stm != null) {
+				try {
+					// Encerra as operações.
+					stm.close();
+				} catch (SQLException e1) {
+					System.out.print(e1.getStackTrace());
+				}
+			}
+		}
+
 		return source.getAbsolutePath() + "," + // endereco absoluto da classe
 				source.getName() + "," + // nome da classe
 
-		// visitorField.nameAtr + "," + // nome do atributo
-		// visitorField.tipo + "," + // tipo do campo
-
-		
-		  visitorMethod.getNameMethod() + "," + // nome do método
-		  visitorMethod.getVisib() + "," + 
-		  visitorMethod.getTyp() + "," +
-		  visitorMethod.getLoc() + ","+
-		 
-		visitorMethod.getNumberMethods(); // qtd de métodos
+		visitorMethod.getNameMethod() + "," + // nome do método
+				visitorMethod.getVisib() + "," + visitorMethod.getTyp() + "," + visitorMethod.getLoc() + ","
+				+ visitorMethod.getNumberMethods(); // qtd de métodos
 
 	}
 
@@ -85,19 +147,19 @@ public class Main {
 	}
 
 	public static void parseFilesInDir(File file, PrintWriter writeCSVFieldProject) throws IOException {
-	
-			if (file.isFile()) {
-				if (file.getName().endsWith(".java")) {
-					String line = parse(readFileToString(file.getAbsolutePath()), file);
-					if (line != null) {
-						writeCSVFieldProject.println(line);
-					}
-				}
-			} else {
-				for (File f : file.listFiles()) {
-					parseFilesInDir(f, writeCSVFieldProject);
+
+		if (file.isFile()) {
+			if (file.getName().endsWith(".java")) {
+				String line = parse(readFileToString(file.getAbsolutePath()), file);
+				if (line != null) {
+					writeCSVFieldProject.println(line);
 				}
 			}
+		} else {
+			for (File f : file.listFiles()) {
+				parseFilesInDir(f, writeCSVFieldProject);
+			}
+		}
 	}
 
 	public static void main(String[] args) throws IOException {

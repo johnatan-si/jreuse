@@ -2,36 +2,48 @@ package Model;
 
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
-import java.util.Stack;
 
 import org.eclipse.jdt.core.dom.ASTVisitor;
 import org.eclipse.jdt.core.dom.CompilationUnit;
-import org.eclipse.jdt.core.dom.ITypeBinding;
 import org.eclipse.jdt.core.dom.MethodDeclaration;
-import org.eclipse.jdt.core.dom.Type;
+
+
+
+
 
 public class MethodDeclarationVisitor extends ASTVisitor {
-	
 
 	private ArrayList<Integer> loc = new ArrayList<Integer>();
 	private ArrayList<String> nameMethod = new ArrayList<String>();
 	private ArrayList<String> visib = new ArrayList<String>();
 	private ArrayList<String> typ = new ArrayList<String>();
-	private CompilationUnit compilation;
+	
 	private String visibility;
 	int numberMethods = 0;
+	private CompilationUnit compilation;
+	private boolean flag;
+	private int startLine;
+	private int endLine;
 
-	  private Stack<ITypeBinding>    _typeBindings;
-	private Object retorno; 
-
-	
-	
 	@Override
 	public boolean visit(MethodDeclaration method) {
 		
-		int startLine = compilation.getLineNumber(method.getBody().getStartPosition());
-		int endLine = compilation.getLineNumber(method.getBody().getStartPosition() + method.getBody().getLength());
-
+		try{
+		//System.out.println("Aqui: "+method.);
+		if(!(method.getBody()==null)){
+			 startLine = compilation.getLineNumber(method.getBody().getStartPosition());
+			 endLine = compilation.getLineNumber(method.getBody().getStartPosition() + method.getBody().getLength());
+			flag=true;
+			loc.add(endLine - startLine - 1);
+		}else{
+			loc.add(0);
+		}
+		
+		 
+		 
+		
+		//System.out.println(compilation.getLineNumber(method.getBody().getStartPosition()));
+		//System.out.println(compilation.getLineNumber(method.getBody().getStartPosition() + method.getBody().getLength()));
 		
 		/* For visibility */
 		int modifierIdent = method.getModifiers();
@@ -44,60 +56,38 @@ public class MethodDeclarationVisitor extends ASTVisitor {
 		} else {
 			visibility = "Package";
 		}
-		
-		// Adição na lista
-		try{
+		//Array list que armazena o tipo do método 
 		visib.add(visibility);
 		nameMethod.add(method.getName().toString());
-		
-		//typ.add(method.getReturnType2().toString());
-		  // declared method return type 
+	
+		// verifica se o retorno do método é nulo 
 		if(!(method.getReturnType2()==null)){
 			typ.add(method.getReturnType2().toString());
+		}else{
+			typ.add("null");
 		}
 		
-		loc.add(endLine - startLine - 1);
+		//method.getJavadoc().getComment();
 		
 		numberMethods++;
+		
 		}catch(Exception e){
 			System.out.println("Metodo "+method.getName().toString());
-			System.out.println("AQUI "+method.getReturnType2().toString());
-
-			System.err.println(e+"\n\r");	
+			System.out.println("Type "+method.getReturnType2().toString());
+			System.err.println("Erro na classe MethodDeclarationVisitor: "+e+"\n\r");	
 		}
-		
-		System.out.println("Visibilidade: " + visibility);
+		/*System.out.println("Visibilidade: " + visibility);
 		System.out.println("Return Type:  " + method.getReturnType2());
-		System.out.println("Method: 	  " + method.getName().toString());
-		System.out.println("Loc: 		  " + (endLine - startLine - 1) + "\n\r");
-
-		/*
-		 * signature = new MethodSignature(name, visibility); parameters =
-		 * node.parameters(); if (null != parameters) { for (Object parameter :
-		 * parameters) { SingleVariableDeclaration parameterCasted =
-		 * (SingleVariableDeclaration)parameter; String parameterName =
-		 * parameterCasted.getName().toString(); String parameterType =
-		 * parameterCasted.getType().toString(); MethodParameter parameterReady
-		 * = new MethodParameter(parameterType, parameterName); //
-		 * System.out.println("Parameter name: " + parameterName + " type: " +
-		 * parameterType); signature.addMethodParameters(parameterReady); } }
-		 */
-		// System.out.println("Parameters: " + parameters);
+		System.out.println("Method: 	  " + method.getName().toString());*/
+		/*if(flag){
+			System.out.println("Loc: 	  " + (endLine - startLine - 1) + "\n\r");
+		}*/
 
 		return super.visit(method);
 	}
 	
+	   
 	
-	private void resolveType(Type type, boolean isExtends, boolean isImplements, boolean isClassAnnotation) { 
-		 
-	    // return null if type == null 
-	    if (type == null) { 
-	      return; 
-	    } 
-	 
-	    // resolve the type binding 
-	    //resolveTypeBinding(type.resolveBinding(), isExtends, isImplements, isClassAnnotation); 
-	  } 	
 	
 	public ArrayList<Integer> getLoc() {
 		return loc;
