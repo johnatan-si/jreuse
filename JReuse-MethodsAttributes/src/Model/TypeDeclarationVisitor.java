@@ -13,15 +13,16 @@ public class TypeDeclarationVisitor extends ASTVisitor {
 
 	@Override
 	public boolean visit(TypeDeclaration node) {
-		boolean privateModifier = false;
+		/*boolean privateModifier = false;
 		for (Object modifier : node.modifiers()) {
 			if (modifier.getClass().equals(Modifier.class) && ((Modifier)modifier).isPrivate()) {
 				privateModifier = true;
 				break;
 			}
-			//System.out.println("TIPO "+node.getNameProperty());
-			//System.out.println("TIPO DECLARADO "+node.getNameProperty());
-		}
+//			System.out.println("TIPO "+node.getNameProperty());
+//			System.out.println("TIPO DECLARADO "+node.getNameProperty());
+		}*/
+		
 
 		return super.visit(node);
 	}

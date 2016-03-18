@@ -7,9 +7,10 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.sql.Connection;
-import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.Hashtable;
+
+import javax.swing.JOptionPane;
 
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.dom.AST;
@@ -20,9 +21,11 @@ import Model.FieldDeclarationVisitor;
 import Model.MethodDeclarationVisitor;
 import Model.TypeDeclarationVisitor;
 import Util.Conexao;
-
+import Util.Log;
 
 public class Main {
+
+	private static int cont;
 
 	public static String parse(String str, File source) throws IOException {
 
@@ -54,61 +57,63 @@ public class Main {
 		compilationUnit.accept(visitorMethod);
 
 		Connection conn = null;
-		String sqlInsert = "INSERT INTO entities(method, class,visibility,type,loc,numberMethods,AbsolutePath) VALUES (?,?,?,?,?,?,?)";
+		String sqlInsert = "INSERT INTO entities(method, class,visibility,type,loc,numberMethods,numberAtr,nameattribute,typeatr,AbsolutePath) VALUES (?,?,?,?,?,?,?,?,?,?)";
 		java.sql.PreparedStatement stm = null;
 		Conexao bd = new Conexao();
-		
+
 		try {
 			conn = bd.obtemConexao();
 		} catch (SQLException e2) {
 			e2.printStackTrace();
+			Log.log(source.getParentFile() +" erro de conexão com o banco de dados"+e2);
 		}
 
 		try {
 			conn.setAutoCommit(false);
 			stm = conn.prepareStatement(sqlInsert);
-			
-			System.out.println("NOME: "+visitorMethod.getNameMethod());
-			System.out.println("TAMANHO: "+visitorMethod.getNameMethod().size());
-			
-			
-			//System.out.println(" classe "+source.getName());
-			System.out.println("Visi "+visitorMethod.getVisib().size()); 
-			System.out.println(" typ "+visitorMethod.getTyp().size() );
-			System.out.println("loc "+visitorMethod.getLoc().size());
- 		    //System.out.println(" qtdMetod "+visitorMethod.getNumberMethods());
 
-
-			
 			for (int i = 0; i < visitorMethod.getNameMethod().size(); i++) {
-			
-				stm.setString(1, visitorMethod.getNameMethod().get(i));// nome do method
+		
+				stm.setString(1, visitorMethod.getNameMethod().get(i));// nome do  method
 				stm.setString(2, source.getName());// nome da classe
-				stm.setString(3, visitorMethod.getVisib().get(i));// visibilidade do metodo 
-				stm.setString(4, visitorMethod.getTyp().get(i));// tipo do método 
-				stm.setInt	 (5, visitorMethod.getLoc().get(i));
-				stm.setInt	 (6, visitorMethod.getNumberMethods());
-				stm.setString(7, source.getAbsolutePath());// caminho do arquivo 
+				stm.setString(3, visitorMethod.getVisib().get(i));// visibilidade do metodo
+				stm.setString(4, visitorMethod.getTyp().get(i));// tipo do método
+				stm.setInt(5, visitorMethod.getLoc().get(i));
+				stm.setInt(6, visitorMethod.getNumberMethods());
+				
+				if(cont==154){
+					System.out.println("teste");
+				}
+				
+				if (i < visitorField.getNumberFields()) {
+					stm.setString(8, visitorField.getNameAtr().get(i).toString());// nome do atributo
+					stm.setString(9, visitorField.getType().get(i).toString());// tipo do atributo
+				}else{
+					stm.setString(8, "null");// nome do atributo
+					stm.setString(9, "null");// tipo do atributo
+				}
+				stm.setInt(7, visitorField.getNumberFields());// tipo do atributo
+				stm.setString(10, source.getAbsolutePath());// caminho do arquivo
 
 				stm.execute();
 				conn.commit();// efetiva inclusoes
-				System.out.println("Inclusão concluída "+i+"\n\r");
+
+				System.out.println("Inclusão nº " + cont++);
+				System.out.println("Inclusão do projeto " + source.getParentFile() +"\n\r");
+				
 			}
-			// stm.execute();
-			// conn.commit();// efetiva inclusoes
-			/*if (stm.execute()) {
-				System.out.println("Inclusão concluída");
-			}*/
 
 		} catch (Exception e) {
 			// Caso tenha uma exceção printa na tela
 			e.printStackTrace();
+			Log.log(source.getParentFile() +" erro SQL"+e);
 			try {
 				// Aqui ele 'tenta' retroceder, na ação que deu errado.
 				// quase um Ctrl+Z da vida.
 				conn.rollback();
 			} catch (SQLException e1) {
 				System.out.print(e1.getStackTrace());
+				Log.log(source.getParentFile() +" erro SQL"+e1);
 			}
 		} finally {
 			if (stm != null) {
@@ -117,6 +122,8 @@ public class Main {
 					stm.close();
 				} catch (SQLException e1) {
 					System.out.print(e1.getStackTrace());
+					Log.log(source.getParentFile() +" erro SQL"+e1);
+
 				}
 			}
 		}
@@ -125,9 +132,13 @@ public class Main {
 				source.getName() + "," + // nome da classe
 
 		visitorMethod.getNameMethod() + "," + // nome do método
-				visitorMethod.getVisib() + "," + visitorMethod.getTyp() + "," + visitorMethod.getLoc() + ","
-				+ visitorMethod.getNumberMethods(); // qtd de métodos
-
+		visitorMethod.getVisib() + "," + 
+		visitorMethod.getTyp() + "," + 
+		visitorMethod.getLoc() + ","+ 
+		visitorMethod.getNumberMethods() + "," +
+		/* Atributos */
+		visitorField.getNameAtr() + "," + 
+		visitorField.getType(); //
 	}
 
 	public static String readFileToString(String filePath) throws IOException {
