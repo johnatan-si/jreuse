@@ -10,19 +10,18 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Hashtable;
 
-import javax.swing.JOptionPane;
-
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.ASTParser;
 import org.eclipse.jdt.core.dom.CompilationUnit;
 
 import Model.FieldDeclarationVisitor;
+import Model.FindSimilarity;
 import Model.MethodDeclarationVisitor;
-import Model.Parameters;
 import Model.TypeDeclarationVisitor;
 import Util.Conexao;
 import Util.Log;
+import Util.RemoveCaractere;
 
 public class Main {
 
@@ -72,25 +71,24 @@ public class Main {
 		try {
 			conn.setAutoCommit(false);
 			stm = conn.prepareStatement(sqlInsert);
-			/*caminho do project*/
+			/*FILE PATH OF PROJECT*/
 			String caminhoA = source.getPath().toString().toLowerCase().replace("\\", "/");
 			String[] caminhoPedacoA = caminhoA.split("/");
+			RemoveCaractere remov= new RemoveCaractere();
 			
 			
 			for (int i = 0; i < visitorMethod.getArraynameMethod().size(); i++) {
-				
-				if (!visitorMethod.getArrayisGetSet().get(i)) {// verifica se é get ou set. Se for, não entra no if
-					
-					stm.setString(1, visitorMethod.getArraynameMethod().get(i));// nome do method
+				if ((!(visitorMethod.getArrayisGetSet().get(i))) && (!(visitorMethod.getArraynameMethod().get(i).startsWith("set") || visitorMethod.getArraynameMethod().get(i).startsWith("get")))) {// verifica se é get ou set. Se for, não entra no if
+					stm.setString(1, visitorMethod.getArraynameMethod().get(i));// NAME OF METHOD
 					stm.setInt(2, visitorMethod.getNumberMethods());
 					stm.setInt(3, visitorMethod.getArrayloc().get(i));
-					stm.setString(4, visitorMethod.getArraytyp().get(i));// tipo do método
-					stm.setString(5, visitorMethod.getArrayvisib().get(i));// visibilidade do metodo
-					stm.setString(6, source.getName().toLowerCase());
+					stm.setString(4, visitorMethod.getArraytyp().get(i));// TYPE OF METHOD
+					stm.setString(5, visitorMethod.getArrayvisib().get(i));// VISIBILITY OF METHOD
+					stm.setString(6, remov.removeCaracteres(source.getName().toLowerCase(), ".java", ""));// NAME CLASS removeCaracteresFromString(source.getName().toLowerCase(), ".java", "")
 
 					if (i < visitorField.getNumberFields()) {
-						stm.setString(8, visitorField.getNameAtr().get(i).toString());// nome do atributo
-						stm.setString(9, visitorField.getType().get(i).toString());// tipo do atributo
+						stm.setString(8, visitorField.getNameAtr().get(i).toString());// NAME OF ATTRIBUTE
+						stm.setString(9, visitorField.getType().get(i).toString());// TYPE OF ATTRIBUTE
 					} else {
 						stm.setString(8, "");// nome do atributo
 						stm.setString(9, "");// tipo do atributo
@@ -170,7 +168,7 @@ public class Main {
 
 	public static void main(String[] args) throws IOException {
 
-		FileReader fileProjects = new FileReader("Projects.txt");
+		FileReader fileProjects = new FileReader("Projects2.txt");
 		BufferedReader readFile = new BufferedReader(fileProjects);
 		try {
 			String project = readFile.readLine();
@@ -185,9 +183,13 @@ public class Main {
 
 				project = readFile.readLine();
 			}
+			FindSimilarity findSim= new FindSimilarity();// calcula a similaridade 
+			findSim.similarity();
 
 		} catch (IOException e) {
 			System.err.println(e);
 		}
 	}
+
+	
 }
