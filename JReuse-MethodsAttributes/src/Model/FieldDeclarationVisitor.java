@@ -12,6 +12,8 @@ public class FieldDeclarationVisitor extends ASTVisitor {
 	public ArrayList<String> nameAtr = new ArrayList<String>();
 	public ArrayList<String> type = new ArrayList<String>();
 
+	private int tamanho;
+
 	@Override
 	public boolean visit(FieldDeclaration node) {
 
@@ -20,19 +22,23 @@ public class FieldDeclarationVisitor extends ASTVisitor {
 		if (fragments != null && !fragments.isEmpty()) {
 			for (VariableDeclarationFragment variableDeclarationFragment : fragments) {
 				if (variableDeclarationFragment.resolveBinding() != null) {
-
-					nameAtr.add(variableDeclarationFragment.getName().toString());
-					type.add(node.modifiers().toString());
-
+					nameAtr.add(variableDeclarationFragment.getName().toString().toLowerCase());
+					tamanho=node.modifiers().size();
+					
+					if(tamanho>1){	
+						type.add((node.modifiers().get(tamanho-1)).toString());	
+					}else{
+						if(tamanho==1){
+					    type.add(node.modifiers().get(0).toString());
+					    }else{
+					    	type.add(" ");
+					    }
+					}
 					numberFields++;
-					//System.out.println("Atributos " + variableDeclarationFragment.getName().toString());
-					// System.out.println("Type "+node.modifiers().toString());
-					//System.out.println("Type " + node.getType());
 				}
 			}
 		}
-		//System.out.println("qtd " + numberFields);
-
+		
 		return super.visit(node);
 	}
 
