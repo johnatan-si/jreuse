@@ -4,35 +4,52 @@ import java.util.ArrayList;
 
 public class Parameters {
 
-	private ArrayList<Integer> loc = new ArrayList<Integer>();
-	private ArrayList<String> nameMethod = new ArrayList<String>();
-	private ArrayList<String> visib = new ArrayList<String>();
-	private ArrayList<String> typ = new ArrayList<String>();
-	int numberMethods;
 	
-	public ArrayList<Integer> getLoc() {
-		return loc;
+	int numberMethods,idClass, idMethod, idAttribute,locMethod, numberAttribute;
+	String visibilityMethod,nameMethod,returnTypeMethod,nameAttribute,visibilityAttribute,typeAttribute, nameClass,nameProject,absolutePath;
+	Boolean isGetSet;
+	
+	public String getVisibilityAttribute() {
+		return visibilityAttribute;
 	}
-	public void setLoc(ArrayList<Integer> loc) {
-		this.loc = loc;
+	public void setVisibilityAttribute(String visibilityAttribute) {
+		this.visibilityAttribute = visibilityAttribute;
 	}
-	public ArrayList<String> getNameMethod() {
-		return nameMethod;
+	public String getAbsolutePath() {
+		return absolutePath;
 	}
-	public void setNameMethod(ArrayList<String> nameMethod) {
-		this.nameMethod = nameMethod;
+	public void setAbsolutePath(String absolutePath) {
+		this.absolutePath = absolutePath;
 	}
-	public ArrayList<String> getVisib() {
-		return visib;
+	public String getNameProject() {
+		return nameProject;
 	}
-	public void setVisib(ArrayList<String> visib) {
-		this.visib = visib;
+	public void setNameProject(String nameProject) {
+		this.nameProject = nameProject;
 	}
-	public ArrayList<String> getTyp() {
-		return typ;
+	public String getNameClass() {
+		return nameClass;
 	}
-	public void setTyp(ArrayList<String> typ) {
-		this.typ = typ;
+	public void setNameClass(String nameClass) {
+		this.nameClass = nameClass;
+	}
+	public int getNumberAttribute() {
+		return numberAttribute;
+	}
+	public void setNumberAttribute(int numberAttribute) {
+		this.numberAttribute = numberAttribute;
+	}
+	public String getNameAttribute() {
+		return nameAttribute;
+	}
+	public void setNameAttribute(String nameAttribute) {
+		this.nameAttribute = nameAttribute;
+	}
+	public String getTypeAttribute() {
+		return typeAttribute;
+	}
+	public void setTypeAttribute(String typeAttribute) {
+		this.typeAttribute = typeAttribute;
 	}
 	public int getNumberMethods() {
 		return numberMethods;
@@ -40,4 +57,53 @@ public class Parameters {
 	public void setNumberMethods(int numberMethods) {
 		this.numberMethods = numberMethods;
 	}
+	public int getIdClass() {
+		return idClass;
+	}
+	public void setIdClass(int idClass) {
+		this.idClass = idClass;
+	}
+	public int getIdMethod() {
+		return idMethod;
+	}
+	public void setIdMethod(int idMethod) {
+		this.idMethod = idMethod;
+	}
+	public int getIdAttribute() {
+		return idAttribute;
+	}
+	public void setIdAttribute(int idAttribute) {
+		this.idAttribute = idAttribute;
+	}
+	public int getLocMethod() {
+		return locMethod;
+	}
+	public void setLocMethod(int locMethod) {
+		this.locMethod = locMethod;
+	}
+	public String getVisibilityMethod() {
+		return visibilityMethod;
+	}
+	public void setVisibilityMethod(String visibilityMethod) {
+		this.visibilityMethod = visibilityMethod;
+	}
+	public String getNameMethod() {
+		return nameMethod;
+	}
+	public void setNameMethod(String nameMethod) {
+		this.nameMethod = nameMethod;
+	}
+	public String getReturnTypeMethod() {
+		return returnTypeMethod;
+	}
+	public void setReturnTypeMethod(String returnTypeMethod) {
+		this.returnTypeMethod = returnTypeMethod;
+	}
+	public Boolean getIsGetSet() {
+		return isGetSet;
+	}
+	public void setIsGetSet(Boolean isGetSet) {
+		this.isGetSet = isGetSet;
+	}
+	
 }

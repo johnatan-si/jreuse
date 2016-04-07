@@ -1,7 +1,6 @@
 package Model;
 
 import java.lang.reflect.Modifier;
-import java.util.ArrayList;
 
 import org.eclipse.jdt.core.dom.ASTVisitor;
 import org.eclipse.jdt.core.dom.CompilationUnit;
@@ -10,21 +9,15 @@ import org.eclipse.jdt.core.dom.PrimitiveType;
 
 public class MethodDeclarationVisitor extends ASTVisitor {
 
-	private ArrayList<Integer> arrayloc = new ArrayList<Integer>();
-
-	private ArrayList<String> arraynameMethod = new ArrayList<String>();
-	private ArrayList<String> arrayvisib = new ArrayList<String>();
-	private ArrayList<String> arraytyp = new ArrayList<String>();
-	private ArrayList<Boolean> arrayisGetSet = new ArrayList<Boolean>();
-
 	private int numberMethods;
-
 	private String visibility;
 	private CompilationUnit compilation;
 	private int startLine;
 	private int endLine;
 
 	private boolean isGetSet;
+
+	public Parameters parametersMethod;
 
 	@Override
 	public boolean visit(MethodDeclaration method) {
@@ -33,9 +26,11 @@ public class MethodDeclarationVisitor extends ASTVisitor {
 			if (!(method.getBody() == null)) {
 				startLine = compilation.getLineNumber(method.getBody().getStartPosition());
 				endLine = compilation.getLineNumber(method.getBody().getStartPosition() + method.getBody().getLength());
-				arrayloc.add((endLine - startLine - 1));
+				parametersMethod.setLocMethod(endLine - startLine - 1);
 			} else {
-				arrayloc.add((endLine - startLine - 1));
+				// param.setLocMethod(endLine - startLine - 1);
+				parametersMethod.locMethod = endLine - startLine - 1;
+
 			}
 			/* For visibility */
 			int modifierIdent = method.getModifiers();
@@ -49,20 +44,23 @@ public class MethodDeclarationVisitor extends ASTVisitor {
 				visibility = "Package";
 			}
 			// Array list que armazena o tipo do método
-			arrayvisib.add(visibility.toString().toLowerCase());
-			arraynameMethod.add(method.getName().toString().toLowerCase());
+			parametersMethod.setVisibilityMethod(visibility.toString().toLowerCase());
+			parametersMethod.setNameMethod(method.getName().toString().toLowerCase());
 
 			// verifica se o retorno do método é nulo
 			if (!(method.getReturnType2() == null)) {
-				arraytyp.add(method.getReturnType2().toString().toLowerCase());
+				parametersMethod.setReturnTypeMethod(method.getReturnType2().toString().toLowerCase());
 			} else {
 
-				arraytyp.add("null");
+				parametersMethod.setReturnTypeMethod("null");
 			}
 			numberMethods++;
 			isGetSet = isGetSetMethod(method);
-			arrayisGetSet.add(isGetSet);
+			parametersMethod.setIsGetSet(isGetSet);
+			parametersMethod.setNumberMethods(numberMethods);
 
+			//System.out.println("numberMethods "+parametersMethod.getNumberMethods()+" "+"locMethod "+parametersMethod.getLocMethod()+" "+" visibilityMethod "+parametersMethod.visibilityMethod+" "+"namemethod "+parametersMethod.nameMethod);
+			
 		} catch (Exception e) {
 			System.out.println("Erro " + e);
 
@@ -70,9 +68,13 @@ public class MethodDeclarationVisitor extends ASTVisitor {
 			System.out.println("Type " + method.getReturnType2().toString());
 			System.err.println("Erro na classe MethodDeclarationVisitor: " + e + "\n\r");
 		}
-		// return super.visit(method);
-		return super.visit(method);
+		//return super.visit(method);
+		return true;
 	}
+	public MethodDeclarationVisitor(CompilationUnit compilation) {
+		this.compilation = compilation;
+	}
+	
 
 	private boolean isVoid(MethodDeclaration method) {
 		try {
@@ -100,64 +102,5 @@ public class MethodDeclarationVisitor extends ASTVisitor {
 		return false;
 	}
 
-	public MethodDeclarationVisitor(CompilationUnit compilation) {
-		this.compilation = compilation;
-	}
-
-	public ArrayList<Integer> getArrayloc() {
-		return arrayloc;
-	}
-
-	public void setArrayloc(ArrayList<Integer> arrayloc) {
-		this.arrayloc = arrayloc;
-	}
-
-	public ArrayList<String> getArraynameMethod() {
-		return arraynameMethod;
-	}
-
-	public void setArraynameMethod(ArrayList<String> arraynameMethod) {
-		this.arraynameMethod = arraynameMethod;
-	}
-
-	public ArrayList<String> getArrayvisib() {
-		return arrayvisib;
-	}
-
-	public void setArrayvisib(ArrayList<String> arrayvisib) {
-		this.arrayvisib = arrayvisib;
-	}
-
-	public ArrayList<String> getArraytyp() {
-		return arraytyp;
-	}
-
-	public void setArraytyp(ArrayList<String> arraytyp) {
-		this.arraytyp = arraytyp;
-	}
-
-	public int getNumberMethods() {
-		return numberMethods;
-	}
-
-	public void setNumberMethods(int numberMethods) {
-		this.numberMethods = numberMethods;
-	}
-
-	public String getVisibility() {
-		return visibility;
-	}
-
-	public void setVisibility(String visibility) {
-		this.visibility = visibility;
-	}
-
-	public ArrayList<Boolean> getArrayisGetSet() {
-		return arrayisGetSet;
-	}
-
-	public void setArrayisGetSet(ArrayList<Boolean> arrayisGetSet) {
-		this.arrayisGetSet = arrayisGetSet;
-	}
-
+	
 }

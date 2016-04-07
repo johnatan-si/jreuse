@@ -6,8 +6,6 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.sql.Connection;
-import java.sql.SQLException;
 import java.util.Hashtable;
 
 import org.eclipse.jdt.core.JavaCore;
@@ -17,15 +15,19 @@ import org.eclipse.jdt.core.dom.CompilationUnit;
 
 import Model.FieldDeclarationVisitor;
 import Model.FindSimilarity;
+import Model.InsertAttributes;
+import Model.InsertClass;
+import Model.InsertMethod;
 import Model.MethodDeclarationVisitor;
+import Model.Parameters;
 import Model.TypeDeclarationVisitor;
-import Util.Conexao;
 import Util.Log;
 import Util.RemoveCaractere;
 
 public class Main {
 
-	private static int cont;
+	private static int cont = 1;
+	private static String nameClass;
 
 	public static String parse(String str, File source) throws IOException {
 
@@ -48,90 +50,48 @@ public class Main {
 
 		final CompilationUnit compilationUnit = (CompilationUnit) parser.createAST(null);
 
-		FieldDeclarationVisitor visitorField = new FieldDeclarationVisitor();
-		TypeDeclarationVisitor visitorType = new TypeDeclarationVisitor();
+		Parameters parameters = new Parameters();
+		
 		MethodDeclarationVisitor visitorMethod = new MethodDeclarationVisitor(compilationUnit);
+		FieldDeclarationVisitor visitorField = new FieldDeclarationVisitor();
+		
+		visitorMethod.parametersMethod= parameters;
+		visitorField.parametersField= parameters;
 
-		compilationUnit.accept(visitorField);
-		compilationUnit.accept(visitorType);
+
 		compilationUnit.accept(visitorMethod);
-
-		Connection conn = null;
-		String sqlInsert = "INSERT INTO entities(nameMethod,QtdMethodsClass,locMethods,typeMethod,visibilityMethod,nameclass,qtdAtrClass,nameattribute,typeatr,nameProject,AbsolutePath) VALUES (?,?,?,?,?,?,?,?,?,?,?)";
-		java.sql.PreparedStatement stm = null;
-		Conexao bd = new Conexao();
-
+		compilationUnit.accept(visitorField);
+		
 		try {
-			conn = bd.obtemConexao();
-		} catch (SQLException e2) {
-			e2.printStackTrace();
-			Log.log(source.getParentFile() + " erro de conexão com o banco de dados" + e2);
-		}
-
-		try {
-			conn.setAutoCommit(false);
-			stm = conn.prepareStatement(sqlInsert);
-			/*FILE PATH OF PROJECT*/
+			
 			String caminhoA = source.getPath().toString().toLowerCase().replace("\\", "/");
 			String[] caminhoPedacoA = caminhoA.split("/");
-			RemoveCaractere remov= new RemoveCaractere();
 			
+			RemoveCaractere remov = new RemoveCaractere();
+			nameClass=remov.removeCaracteres(source.getName().toLowerCase(), ".java", "");
 			
-			for (int i = 0; i < visitorMethod.getArraynameMethod().size(); i++) {
-				if ((!(visitorMethod.getArrayisGetSet().get(i))) && (!(visitorMethod.getArraynameMethod().get(i).startsWith("set") || visitorMethod.getArraynameMethod().get(i).startsWith("get")))) {// verifica se é get ou set. Se for, não entra no if
-					stm.setString(1, visitorMethod.getArraynameMethod().get(i));// NAME OF METHOD
-					stm.setInt(2, visitorMethod.getNumberMethods());
-					stm.setInt(3, visitorMethod.getArrayloc().get(i));
-					stm.setString(4, visitorMethod.getArraytyp().get(i));// TYPE OF METHOD
-					stm.setString(5, visitorMethod.getArrayvisib().get(i));// VISIBILITY OF METHOD
-					stm.setString(6, remov.removeCaracteres(source.getName().toLowerCase(), ".java", ""));// NAME CLASS removeCaracteresFromString(source.getName().toLowerCase(), ".java", "")
+			parameters.setNameClass(nameClass);
+			parameters.setNameProject(caminhoPedacoA[3]);
+			parameters.setAbsolutePath(source.getAbsolutePath());
 
-					if (i < visitorField.getNumberFields()) {
-						stm.setString(8, visitorField.getNameAtr().get(i).toString());// NAME OF ATTRIBUTE
-						stm.setString(9, visitorField.getType().get(i).toString());// TYPE OF ATTRIBUTE
-					} else {
-						stm.setString(8, "");// nome do atributo
-						stm.setString(9, "");// tipo do atributo
-					}
-					stm.setInt(7, visitorField.getNumberFields());// qtd atributos
-					stm.setString(10, caminhoPedacoA[3].toLowerCase());// caminho do project
-					stm.setString(11, source.getAbsolutePath().toLowerCase());// caminho do arquivo
-					
-					stm.execute();
-					conn.commit();// efetiva inclusoes
-
-					System.out.println("Inclusão nº " + cont++);
-					System.out.println("Inclusão do projeto " + source.getParentFile() + "\n\r");
-				}
-			}
+			InsertClass includeClass = new InsertClass();
+			InsertMethod includeMethod = new InsertMethod();
+			InsertAttributes includeAttribute = new InsertAttributes();
+						
+			includeClass.insertClass(parameters);
+			includeMethod.insertMethod(parameters);
+			includeAttribute.insertAttribute(parameters);
+			
 		} catch (Exception e) {
 			// Caso tenha uma exceção printa na tela
 			e.printStackTrace();
 			Log.log(source.getParentFile() + " erro SQL" + e + " " + cont);
-			try {
-				// Aqui ele 'tenta' retroceder, na ação que deu errado.
-				// quase um Ctrl+Z da vida.
-				conn.rollback();
-			} catch (SQLException e1) {
-				System.out.print(e1.getStackTrace());
-				Log.log(source.getParentFile() + " erro SQL" + e1 + " " + cont);
-			}
-		} finally {
-			if (stm != null) {
-				try {
-					// Encerra as operações.
-					stm.close();
-				} catch (SQLException e1) {
-					System.out.print(e1.getStackTrace());
-					Log.log(source.getParentFile() + " erro SQL" + e1 + " " + cont);
-
-				}
-			}
 		}
 
-		return source.getAbsolutePath()  + "," + // endereco absoluto da classe
-			   source.getName()          + "," + // nome da classe
-		       visitorField.getNameAtr() + "," + visitorField.getType(); //
+		return  source.getAbsolutePath() 		+ "," + // endereco absoluto da classe
+				source.getName() 				+ "," + // nome da classe
+				parameters.getNameAttribute() 	+ "," + 
+				parameters.getTypeAttribute();
 	}
 
 	public static String readFileToString(String filePath) throws IOException {
@@ -183,7 +143,8 @@ public class Main {
 
 				project = readFile.readLine();
 			}
-			FindSimilarity findSim= new FindSimilarity();// calcula a similaridade 
+			FindSimilarity findSim = new FindSimilarity();// calcula a
+															// similaridade
 			findSim.similarity();
 
 		} catch (IOException e) {
@@ -191,5 +152,4 @@ public class Main {
 		}
 	}
 
-	
 }
