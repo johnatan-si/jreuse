@@ -7,6 +7,8 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 
+import org.eclipse.jdt.core.dom.BooleanLiteral;
+
 import Util.Conexao;
 import Util.Similarity;
 
@@ -19,7 +21,7 @@ public class FindSimilarity {
 
 	public static void similarity() {
 
-		String query = "SELECT  identities,nameMethod, nameattribute, nameClass, nameProject,AbsolutePath FROM  entities  ORDER BY nameclass ASC";
+		String query = "SELECT nameClass, nameMethod, nameAttribute,projectClass, idClasses, idMethod, idAttribute FROM classes clas INNER JOIN method met ON clas.idClasses=met.Classes_idClasses INNER JOIN attribute on clas.idClasses= attribute.Classes_idClasses ORDER BY nameClass ASC";
 
 		PreparedStatement stm = null;
 		Conexao bd = new Conexao();
@@ -33,7 +35,7 @@ public class FindSimilarity {
 
 		try {
 
-			//System.out.println("SEARCH FILES.... " + "\n\r");
+			// System.out.println("SEARCH FILES.... " + "\n\r");
 
 			// create the java statement
 			Statement st = conn.createStatement();
@@ -47,19 +49,24 @@ public class FindSimilarity {
 			// iterate through the java resultset
 			conn.setAutoCommit(false);
 
-			ArrayList<String> FKentities = new ArrayList<String>();
+			ArrayList<Integer> fkmethod = new ArrayList<Integer>();
+			ArrayList<Integer> fkattributes = new ArrayList<Integer>();
+			ArrayList<Integer> fkclasses = new ArrayList<Integer>();
 
 			ArrayList<String> classes = new ArrayList<String>();
 			ArrayList<String> metodo = new ArrayList<String>();
 			ArrayList<String> attribute = new ArrayList<String>();
 			ArrayList<String> nameProject = new ArrayList<String>();
 			ArrayList<String> pathProjetc = new ArrayList<String>();
-			
-			int cont=1;
-			
+
+			int cont = 1;
+
 			while (rs.next()) {
 
-				FKentities.add(rs.getString("identities"));
+				fkclasses.add(rs.getInt("idClasses"));
+				fkmethod.add(rs.getInt("idMethod"));
+				fkattributes.add(rs.getInt("idAttribute"));
+
 				classes.add(rs.getString("nameClass"));
 				metodo.add(rs.getString("nameMethod"));
 				attribute.add(rs.getString("nameattribute"));
@@ -68,7 +75,7 @@ public class FindSimilarity {
 				pathProjetc.add(rs.getString("AbsolutePath"));
 				cont++;
 			}
-			buscaresultado(classes, metodo, attribute, FKentities, nameProject,pathProjetc,cont);
+			buscaresultado(classes, metodo, attribute, fkclasses, fkmethod, fkattributes, nameProject, pathProjetc,	cont);
 
 		} catch (Exception e) {
 			// Caso tenha uma exceção printa na tela
@@ -85,13 +92,13 @@ public class FindSimilarity {
 		}
 	}
 
-	private static void buscaresultado(ArrayList<String> classes, ArrayList<String> method, ArrayList<String> attribute,
-			ArrayList<String> fKentities, ArrayList<String> nameProject, ArrayList<String> pathProjetc, int cont2) throws Exception {
-
-		// float similaridadeMet, similaridadeClas;
+	private static void buscaresultado(ArrayList<String> classes, ArrayList<String> metodo, ArrayList<String> attribute,
+			ArrayList<Integer> fkclasses, ArrayList<Integer> fkmethod, ArrayList<Integer> fkattributes,
+			ArrayList<String> nameProject, ArrayList<String> pathProjetc, int cont2) throws Exception {
 
 		Connection conn = null;
-		String sqlInsert = "INSERT INTO Similarity(FKentities,nameClassA,nameClassB,methodA, methodB,attributeA,attributeB,similarityClass,similarityMethods,similarityAttributes,nameProjectA,nameProjectB,pathA,pathB) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+		conn.setAutoCommit(false);
+		String 	sqlInsert = "INSERT INTO similarityclassa(similarityClassA, classes_idClasses) VALUES (?,?)";
 		java.sql.PreparedStatement stm = null;
 		Conexao bd = new Conexao();
 
@@ -102,53 +109,34 @@ public class FindSimilarity {
 		}
 
 		try {
-			for (int i = 0; i < method.size(); i++) {
+
+			for (int i = 0; i < classes.size(); i++) {
 				cont++;
-				for (int j = i + 1; j < method.size(); j++) {
+				for (int j = i + 1; j < classes.size(); j++) {
 
 					similarityClass = Similarity.checkSimilarity(classes.get(i), classes.get(j));
-					similarityMethod = Similarity.checkSimilarity(method.get(i), method.get(j));
-					similarityAttribute = Similarity.checkSimilarity(attribute.get(i), attribute.get(j));
 
 					if (similarityClass >= 0.7 && !(nameProject.get(i).contains(nameProject.get(j)))) {
 
-						conn.setAutoCommit(false);
+						
 						stm = conn.prepareStatement(sqlInsert);
 
-						stm.setString(1, fKentities.get(i));
-						stm.setString(2, classes.get(i));
-						stm.setString(3, classes.get(j));
-						stm.setFloat(8, similarityClass);
-
-						if (similarityMethod >= 0.7) {
-							stm.setString(4, method.get(i));
-							stm.setString(5, method.get(j));
-							stm.setFloat(9, similarityMethod);
-						} else {
-							stm.setString(4, "");
-							stm.setString(5, "");
-							stm.setFloat(9, 0);
-						}
-						if (similarityAttribute >= 0.7) {
-							stm.setString(6, attribute.get(i));
-							stm.setString(7, attribute.get(j));
-							stm.setFloat(10, similarityAttribute);
-						} else {
-							stm.setString(6, "");
-							stm.setString(7, "");
-							stm.setFloat(10, 0);
-						}
+						stm.setFloat(1, similarityClass);
+						stm.setInt(2, fkclasses.get(i));
+						stm.executeUpdate();
 						
-						stm.setString(11, nameProject.get(i));
-						stm.setString(12, nameProject.get(j));
-						stm.setString(13, pathProjetc.get(i));
-						stm.setString(14, pathProjetc.get(j));
+				
 
-						stm.execute();
-						conn.commit();// efetiva inclusoes
 					}
-					System.out.println("SEARCH FILES.... "+cont+" of "+cont2);
-					//System.out.println("Inclusão concluída " + i + "\n");
+					/*
+					 * similarityMethod =
+					 * Similarity.checkSimilarity(metodo.get(i), metodo.get(j));
+					 * similarityAttribute =
+					 * Similarity.checkSimilarity(attribute.get(i),
+					 * attribute.get(j));
+					 */
+					System.out.println("SEARCH FILES.... " + cont + " of " + cont2);
+					// System.out.println("Inclusão concluída " + i + "\n");
 				}
 			}
 		} catch (Exception e) {
@@ -172,6 +160,41 @@ public class FindSimilarity {
 			}
 		}
 
+	}
+
+	private static boolean calcMethod(ArrayList<String> metodo) throws Exception {
+		boolean result = false;
+
+		for (int i = 0; i < metodo.size(); i++) {
+			for (int j = i + 1; j < metodo.size(); j++) {
+				similarityMethod = Similarity.checkSimilarity(metodo.get(i), metodo.get(j));
+				if (similarityMethod >= 0.7) {
+					result = true;
+					break;
+				} else {
+					result = false;
+					// break;
+				}
+			}
+		}
+		return result;
+	}
+
+	private static boolean calcAttribute(ArrayList<String> attribute) throws Exception {
+		boolean result = false;
+
+		for (int i = 0; i < attribute.size(); i++) {
+			for (int j = i + 1; j < attribute.size(); j++) {
+				similarityAttribute = Similarity.checkSimilarity(attribute.get(i), attribute.get(j));
+				if (similarityAttribute >= 0.7) {
+					result = true;
+					break;
+				} else {
+					result = false;
+				}
+			}
+		}
+		return result;
 	}
 
 }

@@ -37,7 +37,7 @@ public class FieldDeclarationVisitor extends ASTVisitor {
 					}
 					numberFields++;
 					parametersField.setNumberAttribute(numberFields);
-					parametersField.setTypeAttribute(node.getType().toString());
+					parametersField.setTypeAttribute(node.getType().toString().toLowerCase());
 				}
 			}
 		}

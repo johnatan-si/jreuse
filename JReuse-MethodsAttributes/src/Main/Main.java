@@ -51,47 +51,45 @@ public class Main {
 		final CompilationUnit compilationUnit = (CompilationUnit) parser.createAST(null);
 
 		Parameters parameters = new Parameters();
-		
+
 		MethodDeclarationVisitor visitorMethod = new MethodDeclarationVisitor(compilationUnit);
 		FieldDeclarationVisitor visitorField = new FieldDeclarationVisitor();
-		
-		visitorMethod.parametersMethod= parameters;
-		visitorField.parametersField= parameters;
 
+		visitorMethod.parametersMethod = parameters;
+		visitorField.parametersField = parameters;
 
 		compilationUnit.accept(visitorMethod);
 		compilationUnit.accept(visitorField);
-		
+
 		try {
-			
+
 			String caminhoA = source.getPath().toString().toLowerCase().replace("\\", "/");
 			String[] caminhoPedacoA = caminhoA.split("/");
-			
+
 			RemoveCaractere remov = new RemoveCaractere();
-			nameClass=remov.removeCaracteres(source.getName().toLowerCase(), ".java", "");
-			
+			nameClass = remov.removeCaracteres(source.getName().toLowerCase(), ".java", "");
+
 			parameters.setNameClass(nameClass);
 			parameters.setNameProject(caminhoPedacoA[3]);
-			parameters.setAbsolutePath(source.getAbsolutePath());
+			parameters.setAbsolutePath(source.getAbsolutePath().toLowerCase());
 
 			InsertClass includeClass = new InsertClass();
 			InsertMethod includeMethod = new InsertMethod();
 			InsertAttributes includeAttribute = new InsertAttributes();
-						
+
 			includeClass.insertClass(parameters);
 			includeMethod.insertMethod(parameters);
 			includeAttribute.insertAttribute(parameters);
-			
+
 		} catch (Exception e) {
 			// Caso tenha uma exceção printa na tela
 			e.printStackTrace();
 			Log.log(source.getParentFile() + " erro SQL" + e + " " + cont);
 		}
 
-		return  source.getAbsolutePath() 		+ "," + // endereco absoluto da classe
-				source.getName() 				+ "," + // nome da classe
-				parameters.getNameAttribute() 	+ "," + 
-				parameters.getTypeAttribute();
+		return source.getAbsolutePath() + "," + // endereco absoluto da classe
+				source.getName() + "," + // nome da classe
+				parameters.getNameAttribute() + "," + parameters.getTypeAttribute();
 	}
 
 	public static String readFileToString(String filePath) throws IOException {
@@ -130,11 +128,14 @@ public class Main {
 
 		FileReader fileProjects = new FileReader("Projects2.txt");
 		BufferedReader readFile = new BufferedReader(fileProjects);
+        long i = System.currentTimeMillis();
+
 		try {
 			String project = readFile.readLine();
 			while (project != null) {
 
-				FileWriter csvFieldProject = new FileWriter("../.." + File.separator + "projects" + File.separatorChar + project + "_external.csv");
+				FileWriter csvFieldProject = new FileWriter(
+						"../.." + File.separator + "projects" + File.separatorChar + project + "_external.csv");
 				PrintWriter writeCSVFieldProject = new PrintWriter(csvFieldProject);
 				String endereco = "../.." + File.separator + "projects" + File.separatorChar + project;
 				parseFilesInDir(new File(endereco), writeCSVFieldProject);
@@ -143,9 +144,11 @@ public class Main {
 
 				project = readFile.readLine();
 			}
-			FindSimilarity findSim = new FindSimilarity();// calcula a
-															// similaridade
+
+			FindSimilarity findSim = new FindSimilarity();// calcula a similaridade
 			findSim.similarity();
+	        //System.out.println("Tempo de execução, em milisegundos: "+ (System.currentTimeMillis() -i));
+	        String.format("%03d:%02d", System.currentTimeMillis() -i / 3600000, ( System.currentTimeMillis() -i / 60000 ) % 60 );
 
 		} catch (IOException e) {
 			System.err.println(e);
